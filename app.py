@@ -1,4 +1,4 @@
-# app.py - BigMart Sales Prediction (production-ready)
+# app.py - BigMart Sales Prediction (improved for Aditya Jadhav)
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,27 +17,44 @@ st.set_page_config(
 )
 
 # ---------------------------
-# Polished CSS theme
+# Polished CSS theme (contrast fixes + readable placeholders + sidebar)
 # ---------------------------
-st.markdown("""
+st.markdown(
+    """
 <style>
 /* App background & base */
 .stApp {
-    background: linear-gradient(180deg, #f9fafb 0%, #edf1f4 100%);
+    background: linear-gradient(180deg, #f9fafb 0%, #eef2f7 100%);
     color: #0f172a;
     font-family: Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
 }
 
 /* Header & title */
-h1, h2, h3 { text-align: center; font-weight: 800; color: #0a4b78; margin: 0; }
-h1 { font-size: 2.0rem; margin-top: 6px; }
+h1, h2, h3 { text-align: center; font-weight: 800; color: #0b3556; margin: 0; }
+h1 { font-size: 2.0rem; margin-top: 8px; }
 
-/* Cards */
+/* Sidebar style - dark mode look but readable */
+[data-testid="stSidebar"] {
+    background: #111217;
+    color: #e6eef6;
+}
+[data-testid="stSidebar"] a { color: #60a5fa !important; text-decoration: none; }
+[data-testid="stSidebar"] .stButton>button { background: linear-gradient(90deg,#2563eb,#0a4b78); }
+
+/* Card container */
 .card { background: #ffffff; padding: 18px; border-radius: 12px; box-shadow: 0 6px 20px rgba(13,30,49,0.06); }
 
-/* Inputs styling (best-effort selectors) */
-div[data-testid="stNumberInput"] input,
+/* Input fields and placeholders - ensure high contrast */
+div[data-testid="stTextInput"] label,
+div[data-testid="stNumberInput"] label,
+div[data-testid="stSelectbox"] label,
+div[data-testid="stSlider"] label {
+    color: #0b3556 !important;
+    font-weight: 600;
+}
+
 div[data-testid="stTextInput"] input,
+div[data-testid="stNumberInput"] input,
 div[data-testid="stSelectbox"] select,
 textarea {
     border-radius: 10px !important;
@@ -47,8 +64,18 @@ textarea {
     color: #0f172a !important;
 }
 
-/* Slider */
+/* Placeholder visibility */
+div[data-testid="stTextInput"] input::placeholder,
+div[data-testid="stNumberInput"] input::placeholder,
+div[data-testid="stSelectbox"] select::placeholder,
+textarea::placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+/* Slider tweaks */
 [data-baseweb="slider"] { margin-top: 8px; }
+.css-1q8dd3e { color: #0b3556 !important; } /* fallback label color */
 
 /* Buttons */
 .stButton>button {
@@ -79,8 +106,22 @@ textarea {
 .dev-footer { text-align:center; margin-top: 18px; color:#475569; font-size:13px; }
 .dev-footer a { color: #0a4b78; text-decoration:none; }
 .dev-footer a:hover { text-decoration: underline; }
+
+/* Table header contrast */
+[data-testid="stDataFrameContainer"] thead th {
+    background-color: #f3f4f6 !important;
+    color: #0b3556 !important;
+}
+
+/* Small screens spacing fallback */
+@media (max-width: 800px) {
+    h1 { font-size: 1.6rem; }
+    .result-card { padding: 14px; }
+}
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # ---------------------------
 # Utility: model loading (cached)
@@ -88,10 +129,10 @@ textarea {
 @st.cache_resource(show_spinner=False)
 def load_model(path="bigmart_best_model.pkl"):
     """
-    Load a variety of possible pickle structures:
-    - plain model object
-    - (model, sklearn_version)
-    - dict {'model':..., 'preprocessor':..., 'metadata':...}
+    Load model pickle. Supports several saved shapes:
+      - plain model object
+      - (model, sklearn_version)
+      - dict {'model':..., 'preprocessor':..., 'metadata':...}
     """
     with open(path, "rb") as f:
         obj = pickle.load(f)
@@ -140,21 +181,31 @@ with st.spinner("Loading model..."):
 # Header
 # ---------------------------
 st.title("🛒 BigMart Sales Prediction")
-st.markdown(f"<div style='text-align:center;color:#475569;'>Using model: `<b>{getattr(model,'__class__', type(model)).__name__}</b>` • scikit-learn `{sklearn_version}`</div>", unsafe_allow_html=True)
+st.markdown(
+    f"<div style='text-align:center;color:#475569;'>Using model: `<b>{getattr(model,'__class__', type(model)).__name__}</b>` • scikit-learn `{sklearn_version}`</div>",
+    unsafe_allow_html=True,
+)
 st.write("---")
 
 # ---------------------------
-# Sidebar controls
+# Sidebar controls (Aditya Jadhav + links)
 # ---------------------------
+GITHUB_URL = "https://github.com/aditya-jadhav"  # <- change if you want a different username
+LINKEDIN_URL = "https://www.linkedin.com/in/aditya-jadhav/"  # <- change if needed
+
 with st.sidebar:
-    st.header("Controls")
+    st.markdown("<h3 style='color:#e6eef6'>Controls</h3>", unsafe_allow_html=True)
     use_sample = st.checkbox("Use sample single input", value=True)
     uploaded_file = st.file_uploader("Upload CSV for batch predictions", type=["csv"])
     show_raw = st.checkbox("Show raw input dataframe", value=False)
     enable_download = st.checkbox("Enable CSV download of predictions", value=True)
     st.markdown("---")
-    st.markdown("**Developer**: Tejas Gholap")
-    st.markdown("[GitHub](https://github.com/tejasgholap45) • [LinkedIn](https://linkedin.com/in/tejas-gholap-bb3417300)")
+    st.markdown("<div style='color:#e6eef6'><b>Developer:</b> Aditya Jadhav</div>", unsafe_allow_html=True)
+    st.markdown(f"<a href='{GITHUB_URL}' target='_blank'>GitHub</a> • <a href='{LINKEDIN_URL}' target='_blank'>LinkedIn</a>", unsafe_allow_html=True)
+    st.markdown("---")
+    if st.button("Download sample CSV"):
+        # Will be handled at bottom as well
+        pass
 
 # ---------------------------
 # Build single-row input form
@@ -166,24 +217,24 @@ def build_single_input():
         Item_Weight = st.number_input("Item Weight (kg)", min_value=0.0, value=12.5, format="%.2f")
         Item_Fat_Content = st.selectbox("Item Fat Content", ["Low Fat", "Regular"], index=0)
         Item_Visibility = st.number_input("Item Visibility (0-1)", min_value=0.0, max_value=1.0, value=0.065, format="%.5f")
-        Item_Type = st.selectbox("Item Type", [
-            "Dairy", "Soft Drinks", "Meat", "Fruits and Vegetables", "Household",
-            "Baking Goods", "Snack Foods", "Frozen Foods", "Breakfast", 
-            "Health and Hygiene", "Hard Drinks", "Canned", "Breads", 
-            "Starchy Foods", "Others", "Seafood"
-        ])
+        Item_Type = st.selectbox(
+            "Item Type",
+            [
+                "Dairy", "Soft Drinks", "Meat", "Fruits and Vegetables", "Household",
+                "Baking Goods", "Snack Foods", "Frozen Foods", "Breakfast",
+                "Health and Hygiene", "Hard Drinks", "Canned", "Breads",
+                "Starchy Foods", "Others", "Seafood"
+            ],
+        )
     with c2:
         Item_MRP = st.number_input("Item MRP (₹)", min_value=0.0, value=150.0, format="%.2f")
-        Outlet_Identifier = st.selectbox("Outlet Identifier", [
-            "OUT027", "OUT013", "OUT049", "OUT035", "OUT046", 
-            "OUT017", "OUT045", "OUT018", "OUT019", "OUT010"
-        ])
+        Outlet_Identifier = st.selectbox(
+            "Outlet Identifier",
+            ["OUT027", "OUT013", "OUT049", "OUT035", "OUT046", "OUT017", "OUT045", "OUT018", "OUT019", "OUT010"]
+        )
         Outlet_Size = st.selectbox("Outlet Size", ["Small", "Medium", "High"])
         Outlet_Location_Type = st.selectbox("Outlet Location Type", ["Tier 1", "Tier 2", "Tier 3"])
-        Outlet_Type = st.selectbox("Outlet Type", [
-            "Supermarket Type1", "Supermarket Type2", 
-            "Supermarket Type3", "Grocery Store"
-        ])
+        Outlet_Type = st.selectbox("Outlet Type", ["Supermarket Type1", "Supermarket Type2", "Supermarket Type3", "Grocery Store"])
         Outlet_Age = st.slider("Outlet Age (Years)", 0, 60, 15)
 
     row = {
@@ -197,7 +248,7 @@ def build_single_input():
         "Outlet_Size": Outlet_Size,
         "Outlet_Location_Type": Outlet_Location_Type,
         "Outlet_Type": Outlet_Type,
-        "Outlet_Age": int(Outlet_Age)
+        "Outlet_Age": int(Outlet_Age),
     }
     return pd.DataFrame([row])
 
@@ -233,31 +284,33 @@ if predict_btn:
         try:
             X = input_df.copy()
 
-            # If user saved a preprocessing pipeline, use it
+            # Use preprocessor if available
             if preprocessor is not None:
                 try:
                     X_trans = preprocessor.transform(X)
                 except Exception:
-                    # fallback: some preprocessors expect fit_transform during mismatch (not ideal)
+                    # fallback, not ideal - indicates pipeline should be saved
                     X_trans = preprocessor.fit_transform(X)
                 preds = model.predict(X_trans)
             else:
-                # If the model expects engineered features, the user should have saved a pipeline.
                 preds = model.predict(X)
 
             results = input_df.copy()
             results["Predicted_Sales"] = np.round(preds.astype(float), 2)
 
-            # Result display
-            st.markdown(f"""
+            # Display result card
+            st.markdown(
+                f"""
                 <div class="result-card">
                     <h2>📈 Predicted Sales</h2>
                     <h1 style="color:#0a4b78;margin:6px 0;">₹{results["Predicted_Sales"].mean():,.2f}</h1>
                     <div style="color:#6b7280;font-size:14px;">Estimated by <b>{getattr(model,'__class__', type(model)).__name__}</b> • scikit-learn {sklearn_version}</div>
                 </div>
-            """, unsafe_allow_html=True)
+                """,
+                unsafe_allow_html=True,
+            )
 
-            # Show detailed table and metric
+            # Show detailed table and metrics
             cA, cB = st.columns([2, 1])
             with cA:
                 st.markdown("#### Detailed results")
@@ -271,10 +324,10 @@ if predict_btn:
                         "⬇️ Download CSV",
                         data=csv_bytes,
                         file_name=f"predictions_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
-                        mime="text/csv"
+                        mime="text/csv",
                     )
 
-            # Lightweight explainability: feature importances / coefficients if available
+            # Lightweight explainability if model exposes importances
             try:
                 fi = None
                 if hasattr(model, "feature_importances_"):
@@ -293,7 +346,7 @@ if predict_btn:
                     st.markdown("#### Top feature importances (approx)")
                     st.table(fi_df.style.hide_index())
             except Exception:
-                # not critical - continue
+                # not critical
                 pass
 
         except Exception as e:
@@ -301,21 +354,27 @@ if predict_btn:
             st.exception(traceback.format_exc())
 
 # ---------------------------
-# Footer
+# Footer + sample CSV download
 # ---------------------------
 st.write("---")
-st.markdown("""
+st.markdown(
+    f"""
 <div class='dev-footer'>
-  Built with ❤️ by <b>Tejas Gholap</b> ·
-  <a href='https://github.com/tejasgholap45' target='_blank'>GitHub</a> ·
-  <a href='https://linkedin.com/in/tejas-gholap-bb3417300' target='_blank'>LinkedIn</a><br>
-  <span style='font-size:12px;'>v1.0 • © 2025 BigMart ML Project</span>
+  Built with ❤️ by <b>Aditya Jadhav</b> ·
+  <a href='{GITHUB_URL}' target='_blank'>GitHub</a> ·
+  <a href='{LINKEDIN_URL}' target='_blank'>LinkedIn</a><br>
+  <span style='font-size:12px;'>v1.1 • © {datetime.utcnow().year} BigMart ML Project</span>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# ---------------------------
-# Sample CSV download (sidebar button)
-# ---------------------------
-if st.sidebar.button("Download sample CSV"):
+# sidebar sample download (works when clicked)
+if st.sidebar.button("Download sample CSV (generate)"):
     sample_df = build_single_input()
-    st.sidebar.download_button("Download sample.csv", data=sample_df.to_csv(index=False).encode(), file_name="bigmart_sample_input.csv", mime="text/csv")
+    st.sidebar.download_button(
+        "Download sample.csv",
+        data=sample_df.to_csv(index=False).encode(),
+        file_name="bigmart_sample_input.csv",
+        mime="text/csv",
+    )
