@@ -361,8 +361,8 @@ st.markdown(
     f"""
 <div class='dev-footer'>
   Built with ❤️ by <b>Aditya Jadhav</b> ·
-  <a href='{GITHUB_URL}' target='_blank'>GitHub</a> ·
-  <a href='{LINKEDIN_URL}' target='_blank'>LinkedIn</a><br>
+  <a href='{https://github.com/AdityaJadhav-ds}' target='_blank'>GitHub</a> ·
+  <a href='{www.linkedin.com/in/aditya-jadhav-6775702b4}' target='_blank'>LinkedIn</a><br>
   <span style='font-size:12px;'>v1.1 • © {datetime.utcnow().year} BigMart ML Project</span>
 </div>
 """,
