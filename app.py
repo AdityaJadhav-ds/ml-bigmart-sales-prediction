@@ -181,8 +181,15 @@ with st.spinner("Loading model..."):
 # Header
 # ---------------------------
 st.title("🛒 BigMart Sales Prediction")
+
+model_name = "unknown"
+try:
+    model_name = getattr(model, "__class__", type(model)).__name__
+except Exception:
+    model_name = str(type(model))
+
 st.markdown(
-    f"<div style='text-align:center;color:#475569;'>Using model: `<b>{getattr(model,'__class__', type(model)).__name__}</b>` • scikit-learn `{sklearn_version}`</div>",
+    f"<div style='text-align:center;color:#475569;'>Using model: <b>{model_name}</b> • scikit-learn `{sklearn_version}`</div>",
     unsafe_allow_html=True,
 )
 st.write("---")
@@ -190,8 +197,9 @@ st.write("---")
 # ---------------------------
 # Sidebar controls (Aditya Jadhav + links)
 # ---------------------------
-GITHUB_URL = "https://github.com/aditya-jadhav"  # <- change if you want a different username
-LINKEDIN_URL = "www.linkedin.com/in/aditya-jadhav-6775702b4"  # <- change if needed
+# Use full URLs (with protocol) to avoid f-string/HTML parsing issues
+GITHUB_URL = "https://github.com/AdityaJadhav-ds"
+LINKEDIN_URL = "https://www.linkedin.com/in/aditya-jadhav-6775702b4"
 
 with st.sidebar:
     st.markdown("<h3 style='color:#e6eef6'>Controls</h3>", unsafe_allow_html=True)
@@ -201,6 +209,7 @@ with st.sidebar:
     enable_download = st.checkbox("Enable CSV download of predictions", value=True)
     st.markdown("---")
     st.markdown("<div style='color:#e6eef6'><b>Developer:</b> Aditya Jadhav</div>", unsafe_allow_html=True)
+    # safe string formatting using variables (no braces inside string literals)
     st.markdown(f"<a href='{GITHUB_URL}' target='_blank'>GitHub</a> • <a href='{LINKEDIN_URL}' target='_blank'>LinkedIn</a>", unsafe_allow_html=True)
     st.markdown("---")
     if st.button("Download sample CSV"):
@@ -232,7 +241,7 @@ def build_single_input():
             "Outlet Identifier",
             ["OUT027", "OUT013", "OUT049", "OUT035", "OUT046", "OUT017", "OUT045", "OUT018", "OUT019", "OUT010"]
         )
-        Outlet_Size = st.selectbox("Outlet Size", ["Small", "Medium", "High"])
+        Outlet_Size = st.selectbox("Outlet Size", ["Small", "Medium", "Large"])
         Outlet_Location_Type = st.selectbox("Outlet Location Type", ["Tier 1", "Tier 2", "Tier 3"])
         Outlet_Type = st.selectbox("Outlet Type", ["Supermarket Type1", "Supermarket Type2", "Supermarket Type3", "Grocery Store"])
         Outlet_Age = st.slider("Outlet Age (Years)", 0, 60, 15)
@@ -299,12 +308,13 @@ if predict_btn:
             results["Predicted_Sales"] = np.round(preds.astype(float), 2)
 
             # Display result card
+            mean_pred = results["Predicted_Sales"].mean()
             st.markdown(
                 f"""
                 <div class="result-card">
                     <h2>📈 Predicted Sales</h2>
-                    <h1 style="color:#0a4b78;margin:6px 0;">₹{results["Predicted_Sales"].mean():,.2f}</h1>
-                    <div style="color:#6b7280;font-size:14px;">Estimated by <b>{getattr(model,'__class__', type(model)).__name__}</b> • scikit-learn {sklearn_version}</div>
+                    <h1 style="color:#0a4b78;margin:6px 0;">₹{mean_pred:,.2f}</h1>
+                    <div style="color:#6b7280;font-size:14px;">Estimated by <b>{model_name}</b> • scikit-learn {sklearn_version}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -316,7 +326,7 @@ if predict_btn:
                 st.markdown("#### Detailed results")
                 st.dataframe(results)
             with cB:
-                st.metric("Average Predicted Sales (₹)", f"{results['Predicted_Sales'].mean():,.2f}")
+                st.metric("Average Predicted Sales (₹)", f"{mean_pred:,.2f}")
                 st.markdown("#### Quick actions")
                 if enable_download:
                     csv_bytes = results.to_csv(index=False).encode()
@@ -349,7 +359,7 @@ if predict_btn:
                 # not critical
                 pass
 
-        except Exception as e:
+        except Exception:
             st.error("Prediction failed. See details below.")
             st.exception(traceback.format_exc())
 
@@ -357,13 +367,14 @@ if predict_btn:
 # Footer + sample CSV download
 # ---------------------------
 st.write("---")
+current_year = datetime.utcnow().year
 st.markdown(
     f"""
 <div class='dev-footer'>
   Built with ❤️ by <b>Aditya Jadhav</b> ·
-  <a href='{https://github.com/AdityaJadhav-ds}' target='_blank'>GitHub</a> ·
-  <a href='{www.linkedin.com/in/aditya-jadhav-6775702b4}' target='_blank'>LinkedIn</a><br>
-  <span style='font-size:12px;'>v1.1 • © {datetime.utcnow().year} BigMart ML Project</span>
+  <a href='{GITHUB_URL}' target='_blank'>GitHub</a> ·
+  <a href='{LINKEDIN_URL}' target='_blank'>LinkedIn</a><br>
+  <span style='font-size:12px;'>v1.1 • © {current_year} BigMart ML Project</span>
 </div>
 """,
     unsafe_allow_html=True,
@@ -378,3 +389,4 @@ if st.sidebar.button("Download sample CSV (generate)"):
         file_name="bigmart_sample_input.csv",
         mime="text/csv",
     )
+
