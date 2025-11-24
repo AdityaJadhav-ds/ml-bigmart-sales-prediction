@@ -4,15 +4,19 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-App-green?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](https://opensource.org/licenses/MIT)
 
-This project showcases a complete **Machine Learning pipeline** using BigMart retail sales data. It includes automated data ingestion, MySQL database setup, model training, and deployment via a Streamlit app.
+This project showcases a complete **Machine Learning pipeline** using BigMart retail sales data.  
+It includes automated data ingestion, MySQL database setup, model training, and deployment using a modern Streamlit application.
 
-👉 **Live Demo:** [BigMart Sales Prediction App](https://bigmart-sales-prediction-app-mlproject-tejas-gholap.streamlit.app/)
+👉 **Live Demo:** *https://ml-bigmart-sales-prediction-aditya-jadhav.streamlit.app/*  
 
 ---
 
 ## 📌 Project Overview
 
-Retail sales depend on various factors such as item type, store size, location, and promotional activities. This application predicts the expected sales for a given product-outlet combination using trained ML models.
+Retail sales depend on a variety of factors such as product type, store characteristics, pricing, location, and visibility.  
+This application predicts the **expected sales** for a specific **product + outlet** combination using trained ML regression models.
+
+The project demonstrates a complete end-to-end ML workflow suitable for Data Analyst / Data Scientist portfolios.
 
 ---
 
@@ -48,11 +52,19 @@ flowchart TD
 
 ## ✨ Features
 
-* Clean and user-friendly web interface
+* Clean and modern Streamlit UI
+
 * Automated data preprocessing
-* Trained machine learning regression model
+
+* End-to-end ML pipeline ready for production
+
 * Real-time sales prediction output
-* Built using Python and Streamlit
+
+* Top feature importance display (Explainability)
+
+* CSV upload support for batch predictions
+
+* Downloadable prediction results
 
 ---
 
@@ -102,21 +114,20 @@ Contains product characteristics, store attributes, and historical sales informa
 
 ```bash
 # Clone the repository
-git clone https://github.com/tejasgholap45/Bigmart-Sales-Prediction-App-ML_Project.git
-cd Bigmart-Sales-Prediction-App-ML_Project
+git clone https://github.com/AdityaJadhav-ds/BigMart-Sales-Prediction-ML-App.git
+cd BigMart-Sales-Prediction-ML-App
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Run the Streamlit app
 streamlit run app.py
+
 ```
 
 ---
 
 ## 🧑‍💻 Author
 
-**Tejas Gholap**
+**Aditya Jadhav**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?logo=linkedin\&logoColor=white)](https://www.linkedin.com/in/tejas-gholap-bb3417300/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github\&logoColor=white)](https://github.com/tejasgholap45)
