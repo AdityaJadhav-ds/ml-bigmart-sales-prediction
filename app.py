@@ -171,33 +171,27 @@ with st.spinner("Loading model..."):
         sklearn_version = meta.get("sklearn_version", "unknown")
     except FileNotFoundError:
         st.error("Model file `bigmart_best_model.pkl` not found. Upload it to the app folder.")
-        st.stop()
+        # Do NOT stop; allow user to use the app in "demo" mode even if model missing
+        model = None
+        preprocessor = None
+        sklearn_version = "unknown"
     except Exception as e:
         st.error("Failed to load model. See error below.")
         st.exception(e)
-        st.stop()
+        model = None
+        preprocessor = None
+        sklearn_version = "unknown"
 
 # ---------------------------
 # Header
 # ---------------------------
 st.title("🛒 BigMart Sales Prediction")
-
-model_name = "unknown"
-try:
-    model_name = getattr(model, "__class__", type(model)).__name__
-except Exception:
-    model_name = str(type(model))
-
-st.markdown(
-    f"<div style='text-align:center;color:#475569;'>Using model: <b>{model_name}</b> • scikit-learn `{sklearn_version}`</div>",
-    unsafe_allow_html=True,
-)
+st.markdown("<div style='text-align:center;color:#475569;'>Enter product & outlet details to get a sales estimate</div>", unsafe_allow_html=True)
 st.write("---")
 
 # ---------------------------
 # Sidebar controls (Aditya Jadhav + links)
 # ---------------------------
-# Use full URLs (with protocol) to avoid f-string/HTML parsing issues
 GITHUB_URL = "https://github.com/AdityaJadhav-ds"
 LINKEDIN_URL = "https://www.linkedin.com/in/aditya-jadhav-6775702b4"
 
@@ -207,13 +201,13 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload CSV for batch predictions", type=["csv"])
     show_raw = st.checkbox("Show raw input dataframe", value=False)
     enable_download = st.checkbox("Enable CSV download of predictions", value=True)
+    demo_mode = st.checkbox("Enable demo predictions (no model required)", value=False)
     st.markdown("---")
     st.markdown("<div style='color:#e6eef6'><b>Developer:</b> Aditya Jadhav</div>", unsafe_allow_html=True)
-    # safe string formatting using variables (no braces inside string literals)
     st.markdown(f"<a href='{GITHUB_URL}' target='_blank'>GitHub</a> • <a href='{LINKEDIN_URL}' target='_blank'>LinkedIn</a>", unsafe_allow_html=True)
     st.markdown("---")
     if st.button("Download sample CSV"):
-        # Will be handled at bottom as well
+        # This triggers a sample CSV download at bottom as well
         pass
 
 # ---------------------------
@@ -288,24 +282,38 @@ if show_raw:
 # ---------------------------
 predict_btn = st.button("🔮 Predict Sales")
 
+def demo_predict(X: pd.DataFrame):
+    """Simple demo predictor: a heuristic combining MRP, outlet age and visibility"""
+    base = X.get("Item_MRP", pd.Series(150.0)).astype(float) * 0.25
+    age_factor = (60 - X.get("Outlet_Age", pd.Series(15)).astype(float)) / 60
+    vis_factor = (1 + X.get("Item_Visibility", pd.Series(0.05)).astype(float) * 2)
+    preds = base * (1 + 0.15 * age_factor) * vis_factor
+    return preds.fillna(base)
+
 if predict_btn:
     with st.spinner("Running prediction..."):
         try:
             X = input_df.copy()
 
-            # Use preprocessor if available
-            if preprocessor is not None:
-                try:
-                    X_trans = preprocessor.transform(X)
-                except Exception:
-                    # fallback, not ideal - indicates pipeline should be saved
-                    X_trans = preprocessor.fit_transform(X)
-                preds = model.predict(X_trans)
+            # If demo mode or model missing, use demo predictor
+            if (model is None) or st.sidebar.checkbox("Force demo mode for predict", value=False) or st.sidebar.checkbox("Enable demo predictions (sidebar)", value=False):
+                preds = demo_predict(X)
+                used_model_name = "Demo heuristic"
             else:
-                preds = model.predict(X)
+                # Use preprocessor if available
+                if preprocessor is not None:
+                    try:
+                        X_trans = preprocessor.transform(X)
+                    except Exception:
+                        # fallback - indicates pipeline should be saved as part of model bundle
+                        X_trans = preprocessor.fit_transform(X)
+                    preds = model.predict(X_trans)
+                else:
+                    preds = model.predict(X)
+                used_model_name = getattr(model, "__class__", type(model)).__name__
 
             results = input_df.copy()
-            results["Predicted_Sales"] = np.round(preds.astype(float), 2)
+            results["Predicted_Sales"] = np.round(pd.Series(preds).astype(float), 2)
 
             # Display result card
             mean_pred = results["Predicted_Sales"].mean()
@@ -314,7 +322,7 @@ if predict_btn:
                 <div class="result-card">
                     <h2>📈 Predicted Sales</h2>
                     <h1 style="color:#0a4b78;margin:6px 0;">₹{mean_pred:,.2f}</h1>
-                    <div style="color:#6b7280;font-size:14px;">Estimated by <b>{model_name}</b> • scikit-learn {sklearn_version}</div>
+                    <div style="color:#6b7280;font-size:14px;">Estimated by <b>{used_model_name}</b></div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -337,24 +345,25 @@ if predict_btn:
                         mime="text/csv",
                     )
 
-            # Lightweight explainability if model exposes importances
+            # Lightweight explainability if model exposes importances (only when real model used)
             try:
-                fi = None
-                if hasattr(model, "feature_importances_"):
-                    fi = model.feature_importances_
-                elif hasattr(model, "coef_"):
-                    fi = np.abs(model.coef_).ravel()
+                if (model is not None) and (not isinstance(used_model_name, str) or used_model_name != "Demo heuristic"):
+                    fi = None
+                    if hasattr(model, "feature_importances_"):
+                        fi = model.feature_importances_
+                    elif hasattr(model, "coef_"):
+                        fi = np.abs(model.coef_).ravel()
 
-                if fi is not None:
-                    try:
-                        feature_names = (preprocessor.get_feature_names_out() if preprocessor is not None else X.columns)
-                    except Exception:
-                        feature_names = X.columns
-                    fi_df = pd.DataFrame({"feature": feature_names, "importance": fi})
-                    fi_df = fi_df.sort_values("importance", ascending=False).head(10).reset_index(drop=True)
-                    st.markdown("---")
-                    st.markdown("#### Top feature importances (approx)")
-                    st.table(fi_df.style.hide_index())
+                    if fi is not None:
+                        try:
+                            feature_names = (preprocessor.get_feature_names_out() if preprocessor is not None else X.columns)
+                        except Exception:
+                            feature_names = X.columns
+                        fi_df = pd.DataFrame({"feature": feature_names, "importance": fi})
+                        fi_df = fi_df.sort_values("importance", ascending=False).head(10).reset_index(drop=True)
+                        st.markdown("---")
+                        st.markdown("#### Top feature importances (approx)")
+                        st.table(fi_df.style.hide_index())
             except Exception:
                 # not critical
                 pass
