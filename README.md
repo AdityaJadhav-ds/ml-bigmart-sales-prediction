@@ -8,6 +8,7 @@ This project showcases a complete **Machine Learning pipeline** using BigMart re
 It includes automated data ingestion, MySQL database setup, model training, and deployment using a modern Streamlit application.
 
 👉 **Live Demo:** *https://ml-bigmart-sales-prediction-aditya-jadhav.streamlit.app/*  
+👉 **Live Demo:** [![App](https://img.shields.io/badge/Streamlit-Live_App-red?logo=streamlit&logoColor=white)](https://bigmart-sales-prediction-app-mlproject-adityajadhav.streamlit.app/)
 
 ---
 
