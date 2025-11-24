@@ -191,7 +191,7 @@ st.write("---")
 # Sidebar controls (Aditya Jadhav + links)
 # ---------------------------
 GITHUB_URL = "https://github.com/aditya-jadhav"  # <- change if you want a different username
-LINKEDIN_URL = "https://www.linkedin.com/in/aditya-jadhav/"  # <- change if needed
+LINKEDIN_URL = "www.linkedin.com/in/aditya-jadhav-6775702b4"  # <- change if needed
 
 with st.sidebar:
     st.markdown("<h3 style='color:#e6eef6'>Controls</h3>", unsafe_allow_html=True)
