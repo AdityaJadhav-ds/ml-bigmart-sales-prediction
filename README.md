@@ -114,8 +114,8 @@ Contains product characteristics, store attributes, and historical sales informa
 
 ```bash
 # Clone the repository
-git clone https://github.com/AdityaJadhav-ds/BigMart-Sales-Prediction-ML-App.git
-cd BigMart-Sales-Prediction-ML-App
+git clone https://github.com/AdityaJadhav-ds/ml-bigmart-sales-prediction.git
+cd ml-bigmart-sales-prediction.git
 
 # Install dependencies
 pip install -r requirements.txt
